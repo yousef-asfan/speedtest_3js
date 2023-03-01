@@ -128,30 +128,12 @@ const mat_img04 = new THREE.MeshBasicMaterial({map: tex_img04});
 const mat_img05 = new THREE.MeshBasicMaterial({map: tex_img05});
 const mat_img06 = new THREE.MeshBasicMaterial({map: tex_img06});
 
-// const tex_matcap = textureLoader.load('./textures/matcap.jpg');
 
 const clicks = [];
 const balls = [];
 
 let moveingMap = false;
 let office3D;
-
-// const googleMap = new THREE.Mesh(
-//   new THREE.PlaneGeometry(1400, 1400, 10, 10),
-//   new THREE.MeshBasicMaterial({map: tex_map})
-// );
-// googleMap.position.set(-20,-20,-50);
-
-// googleMap.rotation.x = Math.PI * -0.5;
-// googleMap.rotation.z = Math.PI * -0.05;
-
-// scene.add(googleMap);
-
-
-
-
-// tex_blink.repeat = THREE.RepeatWrapping;
-// tex_blink.offset.y = -0.5;
 
 const robotList = [];
 
@@ -276,26 +258,16 @@ function draw360() {
     });
     scene.add(gltf.scene);
     emitMesh.visible = false;
-    // office3D.visible = false;
   });
 }
 
 const rayCast = new THREE.Raycaster();
-
-// const mouse = new THREE.Vector2();
-// window.addEventListener('pointermove', (event) => {
-//   mouse.x = event.clientX / sizes.width * 2 - 1;
-//   mouse.y = -1 * (event.clientY / sizes.height * 2 - 1);
-// });
 
 const mouseDown = new THREE.Vector2();
 const mouseup = new THREE.Vector2();
 window.addEventListener('pointerdown', (event) => {
   mouseDown.x = event.clientX / sizes.width * 2 - 1;
   mouseDown.y = -1 * (event.clientY / sizes.height * 2 - 1);
-  // mouseDown.copy(mouse);
-  // const intersects = rayCast.intersectObjects(balls);
-  // console.log('x: ' + intersects[0].point.x.toFixed(3) + ' y: ' + intersects[0].point.y.toFixed(3) + ' z: ' + intersects[0].point.z.toFixed(3));
 });
 
 var interactiveObjIsOn = false;
@@ -448,7 +420,6 @@ document.getElementById("mapButton").onclick = function clickBoutton() {
 function moveCamFromMap(index) {
   if (index == -1) {
     if (mapToggle == 0) {
-      // office3D.visible = true;
       camLastPos.copy(camera.position);
       targetLastPos.copy(controls.target);
       emitMesh.visible = true;
@@ -459,14 +430,12 @@ function moveCamFromMap(index) {
       gsap.to(controls.target, { duration: 1, x: mapCenter.x, y: mapCenter.y, z: mapCenter.z });
       gsap.to(camera.position, { duration: 1, x: mapCenter.x, y: mapCenter.y + 30, z: mapCenter.z + 100 });
     } else {
-      // disableMap();
       controls.minDistance = 0.1;
       window.setTimeout(() => { emitMesh.visible = false; controls.maxDistance = 7; }, 1100);
       mapToggle = 0;
       controls.rotateSpeed = -0.4;
       gsap.to(controls.target, { duration: 0.6, x: targetLastPos.x, y: targetLastPos.y, z: targetLastPos.z });
       gsap.to(camera.position, { duration: 0.7, delay: 0.6, x: camLastPos.x, y: camLastPos.y, z: camLastPos.z });
-      // office3D.visible = false;
     }
   } else {
     let rotationFactor = new THREE.Vector3(0, 0, 0);
@@ -485,7 +454,6 @@ function moveCamFromMap(index) {
     window.setTimeout(() => {
       emitMesh.visible = false;
       controls.maxDistance = 7;
-      // office3D.visible = false;
     }, 1100);
     mapToggle = 0;
     controls.rotateSpeed = -0.4;
@@ -498,10 +466,6 @@ function disableMap() {
   if (!moveingMap) {
     moveingMap = true;
     window.setTimeout(() => { moveingMap = false; }, 2000);
-    // const mapB = document.querySelector('.button');
-    // mapB.disable = true;
-    // console.log(mapB);
-    // window.setTimeout(() => { mapB.disable = false; moveingMap = false;}, 2000);
   }
 }
 
@@ -509,23 +473,15 @@ let isRobotOn = false;
 function toggleRobot() {
   if (!isRobotOn) {
     interactiveObjIsOn = true;
-    // robotRaycastBlock.scale.set(1,1,1);
-    // robotList[0].visible = false;
     items_.returnItem(1).visible = true;
     items_.returnItem(2).visible = true;
-    // robotList[0].visible = true;
-    // robotList[1].visible = true;
     isRobotOn = true;
     controls.rotateSpeed = 0.4;
     controls.minDistance = 1.0;
   } else {
     interactiveObjIsOn = false;
-    // robotRaycastBlock.scale.set(1,1,1);
-    // robotList[0].visible = true;
     items_.returnItem(1).visible = false;
     items_.returnItem(2).visible = false;
-    // robotList[0].visible = false;
-    // robotList[1].visible = false;
     isRobotOn = false;
     controls.rotateSpeed = -0.4;
     controls.minDistance = 0.1;
