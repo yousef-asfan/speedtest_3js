@@ -5,7 +5,9 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
 import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js'
 import { gsap } from 'gsap'
 import { SpriteFlipbook } from '/src/SpriteFlipbook.js'
-import { VideoPlayer } from './src/VideoPlayer.js';
+import { VideoPlayer } from './src/VideoPlayer.js'
+import { AddInteractiveItem } from './src/AddInteractiveItem.js'
+
 
 /**
  * INIT
@@ -19,7 +21,7 @@ const sizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
-const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000)
+const camera = new THREE.PerspectiveCamera(75, sizes.width / sizes.height, 0.1, 1000);
 const canvas = document.querySelector('canvas.app360');
 const buttonDiv = document.querySelector('.button');
 
@@ -30,6 +32,9 @@ const renderer = new THREE.WebGLRenderer({
 
 const loadingBarElement = document.querySelector('.loading-bar');
 let sceneReady = false;
+
+const videoPlayer = new VideoPlayer(scene);
+const items_ = new AddInteractiveItem(scene, videoPlayer);
 
 const loadingManager = new THREE.LoadingManager(
   //loaded
@@ -46,6 +51,9 @@ const loadingManager = new THREE.LoadingManager(
       scene.remove(overlay);
   }, 1000);
     moveCamFromMap(-1);
+    window.setTimeout(()=>{
+      items_.initDraw();
+    }, 1000);
   },
   //progress
   (itemURL, itemsLoaded, itemsTotal) => {
@@ -103,18 +111,27 @@ gltfLoader.setDRACOLoader(dracoLoader);
 
 const textureLoader = new THREE.TextureLoader(loadingManager);
 const tex_atlas = textureLoader.load('./textures/atlas_low.jpg');
-//const tex_map = textureLoader.load('./textures/map.jpg');
 const tex_img01 = textureLoader.load('./textures/img01.jpg');
 const tex_img02 = textureLoader.load('./textures/img02.jpg');
 const tex_img03 = textureLoader.load('./textures/img03.jpg');
 const tex_img04 = textureLoader.load('./textures/img04.jpg');
 const tex_img05 = textureLoader.load('./textures/img05.jpg');
 const tex_img06 = textureLoader.load('./textures/img06.jpg');
+
+const tex_img = textureLoader.load('./textures/img.jpg');
+const mat_img = new THREE.MeshBasicMaterial({map: tex_img});
+
+const mat_img01 = new THREE.MeshBasicMaterial({map: tex_img01});
+const mat_img02 = new THREE.MeshBasicMaterial({map: tex_img02});
+const mat_img03 = new THREE.MeshBasicMaterial({map: tex_img03});
+const mat_img04 = new THREE.MeshBasicMaterial({map: tex_img04});
+const mat_img05 = new THREE.MeshBasicMaterial({map: tex_img05});
+const mat_img06 = new THREE.MeshBasicMaterial({map: tex_img06});
+
 // const tex_matcap = textureLoader.load('./textures/matcap.jpg');
 
 const clicks = [];
 const balls = [];
-const triggers = [];
 
 let moveingMap = false;
 let office3D;
@@ -131,44 +148,12 @@ let office3D;
 // scene.add(googleMap);
 
 
-const tex_arm = textureLoader.load('./textures/arm_color.jpg');
-tex_arm.flipY = false;
-const tex_base = textureLoader.load('./textures/base_color2.jpg');
-tex_base.flipY = false;
+
 
 // tex_blink.repeat = THREE.RepeatWrapping;
 // tex_blink.offset.y = -0.5;
 
 const robotList = [];
-
-gltfLoader.load('./models/robotArm.glb', (gltf) => {
-  gltf.scene.traverse((obj) => {
-    if (obj instanceof THREE.Mesh) {
-      if (obj.name == 'robotArm') {
-        obj.material = new THREE.MeshBasicMaterial({ map: tex_arm });
-        obj.position.y -= 0.5;
-        obj.visible = false;
-        robotList.push(obj);
-      } else {
-        obj.material = new THREE.MeshBasicMaterial({ map: tex_base });
-        obj.position.y -= 0.5;
-        obj.visible = false;
-        robotList.push(obj);
-      }
-    }
-  });
-  scene.add(gltf.scene);
-});
-
-const robot_trigger = new THREE.Mesh(
-  new THREE.BoxGeometry(0.6, 1, 0.6),
-  new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true })
-);
-triggers.push(robot_trigger);
-robot_trigger.visible = false;
-robot_trigger.position.set(-5.4, -1.35, -4.8);
-robot_trigger.name = 'robot_t';
-scene.add(robot_trigger);
 
 const robot_pulse = new SpriteFlipbook('./textures/pulse.png', 0xff0000, 5,5, scene);
 robot_pulse.setPosition(-5, -1.2, -4.5);
@@ -177,57 +162,16 @@ robot_pulse.loop([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,20], 1.3)
 
 // ----------------------------------------------------------------
 
-const image_trigger = new THREE.Mesh(
-  new THREE.BoxGeometry(2, 2, 0.5),
-  new THREE.MeshBasicMaterial({ color: 0xff00ff, wireframe: true })
-);
-triggers.push(image_trigger);
-image_trigger.visible = false;
-image_trigger.position.set(-31, -0.1, 1.5);
-image_trigger.name = 'image_t';
-scene.add(image_trigger);
+
 
 const image_pulse = new SpriteFlipbook('./textures/pulse.png', 0xff0000, 5,5, scene);
-image_pulse.setPosition(-31, -0.1, 1.1);
+image_pulse.setPosition(-31, -0.1, 0.5);
 image_pulse.setScale(1.5,1.5,1.5);
 image_pulse.loop([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,20], 1.3);
 
-const tex_map = textureLoader.load('./textures/map.jpg');
-tex_map.flipY = false;
-const imagePlane = new THREE.Mesh(
-  new THREE.PlaneGeometry(6,6),
-  new THREE.MeshBasicMaterial({map: tex_map, side: THREE.DoubleSide})
-);
-imagePlane.name = 'image_t';
-triggers.push(imagePlane);
-imagePlane.rotation.z = Math.PI;
-imagePlane.position.set(-31, -0.1, -2);
-imagePlane.visible = false;
-scene.add(imagePlane);
+
 // ----------------------------------------------------------------
 
-
-const robotRaycastBlock = new THREE.Mesh(
-  new THREE.SphereGeometry(2, 12, 12),
-  new THREE.MeshBasicMaterial({ side: THREE.BackSide })
-);
-robotRaycastBlock.scale.set(0, 0, 0);
-robotRaycastBlock.visible = false;
-scene.add(robotRaycastBlock);
-
-const videoPlayer1 = new VideoPlayer(scene);
-videoPlayer1.createVideo();
-videoPlayer1.stopVideo();
-const videoBox = new THREE.Mesh(
-  new THREE.BoxGeometry(8,4.5,0.3,2,2,2),
-  new THREE.MeshBasicMaterial({color: 0xff00ff, wireframe: true})
-);
-videoBox.position.set(-50.4,0,-35);
-videoBox.rotation.y = -Math.PI / 2;
-videoBox.visible = false;
-videoBox.name = 'video_t';
-triggers.push(videoBox);
-scene.add(videoBox);
 
 const video_pulse = new SpriteFlipbook('./textures/pulse.png', 0xff0000, 5,5, scene);
 video_pulse.setPosition(-49.85,0,-35);
@@ -275,17 +219,24 @@ function drawClicks() {
   gltfLoader.load('./models/click.glb', (gltf) => {
     gltf.scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
-        obj.material = new THREE.MeshBasicMaterial({ map: tex_atlas });
-        clicks.push(obj);
+        if(obj.name == 'arrows'){
+          obj.material = mat_img;
+          clicks.push(obj);
+        }else{
+          obj.material = new THREE.MeshBasicMaterial({ color: 0xff00ff });
+          obj.visible = false;
+          clicks.push(obj);
+        }
       }
     });
+    gltf.scene.position.y -= 0.6;
     scene.add(gltf.scene);
   });
 }
 
 let emitMesh;
 function draw360() {
-  gltfLoader.load('./models/office2.glb', (gltf) => {
+  gltfLoader.load('./models/office.glb', (gltf) => {
     gltf.scene.traverse((obj) => {
       if (obj instanceof THREE.Mesh) {
         switch (obj.name) {
@@ -294,22 +245,22 @@ function draw360() {
             office3D = obj;
             break;
           case 'img01':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img01 });
+            obj.material = mat_img01;
             break;
           case 'img02':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img02 });
+            obj.material = mat_img02;
             break;
           case 'img03':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img03 });
+            obj.material = mat_img03;
             break;
           case 'img04':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img04 });
+            obj.material = mat_img04;
             break;
           case 'img05':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img05 });
+            obj.material = mat_img05;
             break;
           case 'img06':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img06 });
+            obj.material = mat_img06;
             obj.rotation.y = Math.PI / -0.415;
             break;
           case 'emit':
@@ -317,7 +268,7 @@ function draw360() {
             obj.material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
             break;
           case 'outside':
-            obj.material = new THREE.MeshBasicMaterial({ map: tex_img01 });
+            obj.material = mat_img01;
             break;
         }
         balls.push(obj);
@@ -359,7 +310,12 @@ window.addEventListener('pointerup', (event) => {
     rayCast.setFromCamera(mouseup, camera);
     if (mapToggle == 0) {
       const intersects = rayCast.intersectObjects(clicks);
-      if (intersects.length != 0 && !interactiveObjIsOn) {
+      if (intersects.length != 0) {
+        if(interactiveObjIsOn){
+          if(isRobotOn){ toggleRobot(); }
+          if(isImageOn){ toggleImage(); }
+          if(isVideoOn){ toggleVideo(); }
+        }
         switch (intersects[0].object.name) {
           case '2t1':
             moveCamTo(2, 1);
@@ -399,7 +355,7 @@ window.addEventListener('pointerup', (event) => {
             break;
         }
       } else {
-        const intersect_triggers = rayCast.intersectObjects(triggers);
+        const intersect_triggers = rayCast.intersectObjects(items_.returnTriggers());
         if (intersect_triggers.length != 0) {
           switch (intersect_triggers[0].object.name) {
             case 'robot_t':
@@ -555,8 +511,10 @@ function toggleRobot() {
     interactiveObjIsOn = true;
     // robotRaycastBlock.scale.set(1,1,1);
     // robotList[0].visible = false;
-    robotList[0].visible = true;
-    robotList[1].visible = true;
+    items_.returnItem(1).visible = true;
+    items_.returnItem(2).visible = true;
+    // robotList[0].visible = true;
+    // robotList[1].visible = true;
     isRobotOn = true;
     controls.rotateSpeed = 0.4;
     controls.minDistance = 1.0;
@@ -564,8 +522,10 @@ function toggleRobot() {
     interactiveObjIsOn = false;
     // robotRaycastBlock.scale.set(1,1,1);
     // robotList[0].visible = true;
-    robotList[0].visible = false;
-    robotList[1].visible = false;
+    items_.returnItem(1).visible = false;
+    items_.returnItem(2).visible = false;
+    // robotList[0].visible = false;
+    // robotList[1].visible = false;
     isRobotOn = false;
     controls.rotateSpeed = -0.4;
     controls.minDistance = 0.1;
@@ -576,11 +536,11 @@ let isImageOn = false;
 function toggleImage() {
   if (!isImageOn) {
     interactiveObjIsOn = true;
-    imagePlane.visible = true;
+    items_.returnItem(0).visible = true;
     isImageOn = true;
   } else {
     interactiveObjIsOn = false;
-    imagePlane.visible = false;
+    items_.returnItem(0).visible = false;
     isImageOn = false;
   }
 }
@@ -589,9 +549,9 @@ let isVideoOn = false;
 function toggleVideo(){
   if(isVideoOn){
     isVideoOn = false;
-    videoPlayer1.stopVideo();
+    videoPlayer.stopVideo();
   }else{
     isVideoOn = true;
-    videoPlayer1.playVideo();
+    videoPlayer.playVideo();
   }
 }
